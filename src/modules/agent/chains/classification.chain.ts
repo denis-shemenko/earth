@@ -1,18 +1,12 @@
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { RunnableSequence } from "@langchain/core/runnables";
+import { RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
 import { BaseLanguageModel } from "langchain/base_language";
-
-// tag::interface[]
-export interface ClassificationInput {
-  question: string;
-}
-// end::interface[]
 
 // tag::function[]
 export default function initClassificationChain(
   llm: BaseLanguageModel
-): RunnableSequence<ClassificationInput, string> {
+): RunnableSequence<string, string> {
   const answerQuestionPrompt = PromptTemplate.fromTemplate(`
     You need to classify player's question and respond with the Category only.
 
@@ -25,7 +19,10 @@ export default function initClassificationChain(
     If category is a good fit for more than one of supported, choose any.`
   );
 
-  return RunnableSequence.from<ClassificationInput, string>([
+  return RunnableSequence.from([
+    {
+      question: new RunnablePassthrough()
+    },
     answerQuestionPrompt, 
     llm, 
     new StringOutputParser()
