@@ -4,6 +4,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 type ResponseData = {
   message: string;
+  options: string[];
+  correct: string;
 };
 
 function getSessionId(req: NextApiRequest, res: NextApiResponse): string {
@@ -35,14 +37,18 @@ export default async function handler(
       const result = await call(message, sessionId);
 
       res.status(201).json({
-        message: result,
+        message: result.question,
+        options: result.answers,
+        correct: result.correct,
       });
     } catch (e: any) {
       res.status(500).json({
         message: `I'm suffering from brain fog...\n\n${e.message}`,
+        options: [],
+        correct: "",
       });
     }
   } else {
-    res.status(404).send({ message: "Route not found" });
+    res.status(404).send({ message: "Route not found", options: [], correct: "" });
   }
 }

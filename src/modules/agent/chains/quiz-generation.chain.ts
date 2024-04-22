@@ -1,12 +1,18 @@
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { JsonOutputParser, StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
 import { BaseLanguageModel } from "langchain/base_language";
 
+export interface GeneratedQuestion {
+  question: string;
+  answers: string[];
+  correct: string;
+}
+
 // tag::function[]
 export default function initQuizGenerationChain(
   llm: BaseLanguageModel
-): RunnableSequence<string, string> {
+): RunnableSequence<string, GeneratedQuestion> {
   const generateQuizPrompt = PromptTemplate.fromTemplate(`
     Generate exactly one interesting question for the curious player on specific Topic with Category.
 
@@ -18,8 +24,9 @@ export default function initQuizGenerationChain(
     
     Rules:
     - Use 4 available options for answers to the question
-    - Include proper answer and mark it with the label: [Correct Answer]
-    - Randomize the position of Correct Answer, so it is not always (A)`
+    - Always include Correct answer to the available options
+    - Randomize the position of Correct Answer, so it is not always (A)
+    - Output JSON as {{"question": "put generated question here", "answers":["Option A", "Option B", "Option C", "Option D"], "correct": "just put the correct answer zero-based index here"}}`
   );
 
   return RunnableSequence.from([
@@ -28,7 +35,7 @@ export default function initQuizGenerationChain(
     },
     generateQuizPrompt, 
     llm, 
-    new StringOutputParser()
+    new JsonOutputParser<GeneratedQuestion>()
   ]);
 }
 // end::function[]

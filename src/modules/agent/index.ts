@@ -4,8 +4,8 @@ import initAgent from "./agent";
 import { initGraph } from "../graph";
 import initClassificationChain from "./chains/classification.chain";
 import initWolframTool from "./tools/wolfram.tool";
-import { RunnablePassthrough, RunnableSequence } from "langchain/runnables";
-import initQuizGenerationChain from "./chains/quiz-generation.chain";
+import { RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
+import initQuizGenerationChain, { GeneratedQuestion } from "./chains/quiz-generation.chain";
 
 // tag::throughput[]
 type QuizGenerationChainThroughput = {
@@ -16,7 +16,7 @@ type QuizGenerationChainThroughput = {
 // end::throughput[]
 
 // tag::call[]
-export async function call(input: string, sessionId: string): Promise<string> {
+export async function call(input: string, sessionId: string): Promise<GeneratedQuestion> {
   // TODO: Replace this code with an agent
   const llmFactual = new ChatOpenAI({
     openAIApiKey: process.env.OPENAI_API_KEY,

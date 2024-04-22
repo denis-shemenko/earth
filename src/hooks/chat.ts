@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 export type Message = {
   role: "human" | "ai";
   content: string;
+  options: string[];
+  correct: string;
 };
 
 export default function useChat() {
@@ -12,13 +14,15 @@ export default function useChat() {
       role: "ai",
       content:
         process.env.NEXT_PUBLIC_CHATBOT_GREETING || "How can I help you today?",
+      options: [],
+      correct: "",
     },
   ]);
   const container = useRef<HTMLDivElement>(null);
 
   const generateResponse = async (message: string): Promise<void> => {
     // Append human message
-    messages.push({ role: "human", content: message });
+    messages.push({ role: "human", content: message, options: [], correct: "" });
 
     // Set thinking to true
     setThinking(true);
@@ -33,7 +37,7 @@ export default function useChat() {
       // Append the API message to the state
       const json = await response.json();
 
-      messages.push({ role: "ai", content: json.message });
+      messages.push({ role: "ai", content: json.message, options: json.options, correct: json.correct });
 
       setMessages(messages);
     } catch (e) {
