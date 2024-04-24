@@ -4,14 +4,24 @@ import initAgent from "./agent";
 import { initGraph } from "../graph";
 import initClassificationChain from "./chains/classification.chain";
 import initWolframTool from "./tools/wolfram.tool";
-import { RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
+import { RunnableMap, RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
 import initQuizGenerationChain, { GeneratedQuestion } from "./chains/quiz-generation.chain";
+import { saveQuestion } from "./dbprovider";
+import initTopicExtractionChain from "./chains/topic-extraction.chain";
+
+export type GeneratedCategories = {
+  category0: string;
+  category1: string; 
+  category2: string;
+  category3: string;
+}
 
 // tag::throughput[]
 type QuizGenerationChainThroughput = {
-  question: string;
+  topic: string;
   category: string;
-  output: string;
+  generatedQuestion: GeneratedQuestion;
+  categories: GeneratedCategories;
 };
 // end::throughput[]
 
@@ -51,28 +61,37 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
   
   const classificationChain = initClassificationChain(llmFactual);
   const quizGenerationChain = initQuizGenerationChain(llmCreative);
+  //const topicExtractionChain = initTopicExtractionChain(llmFactual);
   //const response = await classificationChain.invoke(input);
 
-  const classifyAndSaveChain = RunnablePassthrough.assign<{question: string}, any>({
-    question: (input) => input.question,
-    category: (input) => classificationChain.invoke(input.question)
+  const classifyAndSaveChain = RunnablePassthrough.assign<{topic: string}, any>({
+    topic: (input) => input.topic,
+    category: (input) => classificationChain.invoke(input.topic)
   }).assign({
-    output: (input: QuizGenerationChainThroughput) => quizGenerationChain.invoke(input.question)
+    generatedQuestion: (input: QuizGenerationChainThroughput) => quizGenerationChain.invoke(input.topic)
   }).assign({
-    // TODO: Save IN DB
-    // responseId: async (input: RetrievalChainThroughput, options) =>
-    //   saveHistory(
-    //     options?.config.configurable.sessionId,
-    //     "vector",
-    //     input.input,
-    //     input.rephrasedQuestion,
-    //     input.output,
-    //     input.ids
-    //   )
-    _: (input: QuizGenerationChainThroughput) => console.log(input.category)
-  }).pick("output");
+    categories: (input: QuizGenerationChainThroughput) => 
+      RunnableMap.from<QuizGenerationChainThroughput, Record<string, string>>({
+        category0: () => classificationChain.invoke(input.generatedQuestion.answers[0]),
+        category1: () => classificationChain.invoke(input.generatedQuestion.answers[1]),
+        category2: () => classificationChain.invoke(input.generatedQuestion.answers[2]),
+        category3: () => classificationChain.invoke(input.generatedQuestion.answers[3]),
+    })
+  }).assign({
+    _: (input: QuizGenerationChainThroughput) => console.log(input.categories)
+  }).assign({
+    responseId: async (input: QuizGenerationChainThroughput) =>
+      saveQuestion(
+        sessionId,
+        input.topic,
+        input.category,
+        input.generatedQuestion,
+        input.categories
+      )
+    //_: (input: QuizGenerationChainThroughput) => console.log(input.category)
+  }).pick("generatedQuestion");
 
-  const response = classifyAndSaveChain.invoke({question: input});
+  const response = classifyAndSaveChain.invoke({topic: input});
   return response;
 }
 // end::call[]
