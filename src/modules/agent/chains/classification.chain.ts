@@ -14,7 +14,7 @@ export default function initClassificationChain(
     {question}
 
     Only the categories from the next list are supported now:
-    [Person, Geography, Event, Date, Culture]
+    [Person, Geography, Event, Date, Culture, Nature]
     If category is not contained in the provided list, just answer: "NOT_SUPPORTED", don't try to make up an answer.
     If category is a good fit for more than one of supported, choose any.`
   );

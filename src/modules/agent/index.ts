@@ -8,6 +8,8 @@ import { RunnableMap, RunnablePassthrough, RunnableSequence } from "@langchain/c
 import initQuizGenerationChain, { GeneratedQuestion } from "./chains/quiz-generation.chain";
 import { saveQuestion } from "./dbprovider";
 import initTopicExtractionChain from "./chains/topic-extraction.chain";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 
 export type GeneratedCategories = {
   category0: string;
@@ -40,12 +42,23 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
     temperature: 0.9,
   });
 
+  const llmGemini = new ChatGoogleGenerativeAI ({
+    model: "gemini-pro",
+    maxOutputTokens: 2048,
+    safetySettings: [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+      },
+    ],
+  });
+
   // const embeddings = new OpenAIEmbeddings({
   //   openAIApiKey: process.env.OPENAI_API_KEY,
   // });
 
   // Get Graph Singleton
-  const graph = await initGraph();
+  //const graph = await initGraph();
 
   //const agent = await initAgent(llm, embeddings, graph);
   //const res = await agent.invoke({ input }, { configurable: { sessionId } });
@@ -59,8 +72,10 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
   // - Wide: All questions generated only on 1 Initial topic
   // - Deep: All questions just follow one by one (like a chain) without confirmation
   
-  const classificationChain = initClassificationChain(llmFactual);
-  const quizGenerationChain = initQuizGenerationChain(llmCreative);
+  // const classificationChain = initClassificationChain(llmFactual);
+  // const quizGenerationChain = initQuizGenerationChain(llmCreative);
+  const classificationChain = initClassificationChain(llmGemini);
+  const quizGenerationChain = initQuizGenerationChain(llmGemini);
   //const topicExtractionChain = initTopicExtractionChain(llmFactual);
   //const response = await classificationChain.invoke(input);
 
@@ -88,10 +103,10 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
         input.generatedQuestion,
         input.categories
       )
-    //_: (input: QuizGenerationChainThroughput) => console.log(input.category)
   }).pick("generatedQuestion");
 
-  const response = classifyAndSaveChain.invoke({topic: input});
+  const response = await classifyAndSaveChain.invoke({topic: input});
+
   return response;
 }
 // end::call[]

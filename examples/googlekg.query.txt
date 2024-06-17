@@ -1,0 +1,11 @@
+const kgResponse = await fetch(
+    `https://kgsearch.googleapis.com/v1/entities:search?limit=3&query=${response.question}&key=${process.env.GOOGLE_API_KEY}`,
+    {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+      },
+    });
+  const data = await kgResponse.json();
+  const result: ListItem = data.itemListElement[0];
+  console.log(data);

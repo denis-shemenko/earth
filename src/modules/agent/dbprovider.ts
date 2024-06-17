@@ -23,7 +23,7 @@ CREATE (question:Question {
 CREATE (session)-[:GOT_QUESTION {at: datetime()}]->(question)
 
 // <3> Create new Topic
-CREATE (topic:Topic {
+MERGE (topic:Topic {
   name: $topic,
   category: $category
 })
@@ -31,19 +31,19 @@ CREATE (question)-[:ABOUT]->(topic)
 
 // TODO: HANDLE NOT_SUPPORTED categories
 // <4> Create answers to the question
-CREATE (a0topic:Topic {
+MERGE (a0topic:Topic {
   name: $answer0,
   category: $category0
 })
-CREATE (a1topic:Topic {
+MERGE (a1topic:Topic {
   name: $answer1,
   category: $category1
 })
-CREATE (a2topic:Topic {
+MERGE (a2topic:Topic {
   name: $answer2,
   category: $category2
 })
-CREATE (a3topic:Topic {
+MERGE (a3topic:Topic {
   name: $answer3,
   category: $category3
 })

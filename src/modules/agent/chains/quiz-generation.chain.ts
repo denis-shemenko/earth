@@ -26,6 +26,7 @@ export default function initQuizGenerationChain(
     - Use 4 available options for answers to the question
     - Always include Correct answer to the available options
     - Randomize the position of Correct Answer, so it is not always (A)
+    - Do NOT Include ordering with letters (A, B, C) or numbers (1,2,3) to the options text
     - Output JSON as {{"question": "put generated question here", "answers":["Option A", "Option B", "Option C", "Option D"], "correct": "just put the correct answer zero-based index here"}}`
   );
 

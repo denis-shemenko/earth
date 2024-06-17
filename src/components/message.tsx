@@ -1,14 +1,14 @@
 import { parse } from "marked";
-import * as chat from "@/hooks/chat";
+import useChat, * as chat from "@/hooks/chat";
 
-function fixMarkdown(message: chat.Message): string {
-  return parse(message.content).replace(
-    '<a href="',
-    '<a target="_blank" href="'
-  );
+import React from 'react'
+
+interface Props{
+  message: chat.Message;
+  checkAnswer: (i:number, ci:string, answer:string, topic: string) => void;
 }
 
-export default function Message({ message }: { message: chat.Message }) {
+const Message = ({message, checkAnswer}: Props) => {
   const align = message.role == "ai" ? "justify-start" : "justify-end";
   const no_rounding =
     message.role == "ai" ? "rounded-bl-none" : "rounded-br-none";
@@ -32,17 +32,26 @@ export default function Message({ message }: { message: chat.Message }) {
                   <button 
                   key={index} 
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold m-1 py-2 px-4 rounded-full"
-                  data-isCorrect={index == Number(message.correct)}>
+                  onClick={() => checkAnswer(index, message.correct, answer, message.topic)}>
                       {answer}
                   </button>)}
               </div>
             : null}
             
           {/* <time className={`text-xs font-bold text-${background}-400`}>
-            12:32
+            12:32 checkAnswer(index, message.correct, answer)
           </time> */}
         </div>
       </div>
     </div>
+  );
+}
+
+export default Message
+
+function fixMarkdown(message: chat.Message): string {
+  return parse(message.content).replace(
+    '<a href="',
+    '<a target="_blank" href="'
   );
 }

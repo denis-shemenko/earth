@@ -5,6 +5,7 @@ export type Message = {
   content: string;
   options: string[];
   correct: string;
+  topic: string;
 };
 
 export default function useChat() {
@@ -16,13 +17,15 @@ export default function useChat() {
         process.env.NEXT_PUBLIC_CHATBOT_GREETING || "How can I help you today?",
       options: [],
       correct: "",
+      topic: "",
     },
   ]);
   const container = useRef<HTMLDivElement>(null);
 
   const generateResponse = async (message: string): Promise<void> => {
     // Append human message
-    messages.push({ role: "human", content: message, options: [], correct: "" });
+    var currentTopic = message;
+    messages.push({ role: "human", content: message, options: [], correct: "", topic: currentTopic });
 
     // Set thinking to true
     setThinking(true);
@@ -37,7 +40,7 @@ export default function useChat() {
       // Append the API message to the state
       const json = await response.json();
 
-      messages.push({ role: "ai", content: json.message, options: json.options, correct: json.correct });
+      messages.push({ role: "ai", content: json.message, options: json.options, correct: json.correct, topic: currentTopic });
 
       setMessages(messages);
     } catch (e) {
@@ -58,6 +61,6 @@ export default function useChat() {
     thinking,
     messages,
     container,
-    generateResponse,
+    generateResponse
   };
 }

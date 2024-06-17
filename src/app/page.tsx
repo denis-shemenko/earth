@@ -13,6 +13,24 @@ export default function Home() {
     process.env.NEXT_PUBLIC_CHATBOT_NAME || "Chatbot"
   } is thinking...`;
 
+  const checkAnswer = async (
+    index: number, 
+    correctIndex: string, 
+    answer: string,
+    topic: string,
+  ): Promise<void> => {
+    const answerIsCorrect = index == Number(correctIndex);
+    const checkResult = answerIsCorrect ? "You are totally right!" : "Nope, try again";
+    alert(checkResult);
+  
+    if(answerIsCorrect)
+      generateResponse(answer);
+    else{
+      messages.push({ role: "ai", content: `Okay, let's continue with ${topic}`, options: [], correct: "", topic: "" });
+      generateResponse(topic);
+    }
+  }
+
   return (
     <>
       <div
@@ -38,7 +56,7 @@ export default function Home() {
             scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
         >
           {messages.map((m, i) => {
-            return <Message key={i} message={m} />;
+            return <Message key={i} message={m} checkAnswer={checkAnswer}/>;
           })}
 
           {thinking && <Thinking />}
