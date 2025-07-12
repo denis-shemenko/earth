@@ -43,7 +43,8 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
   });
 
   const llmGemini = new ChatGoogleGenerativeAI ({
-    model: "gemini-pro",
+    apiKey: process.env.GOOGLE_API_KEY,
+    model: "gemini-2.5-flash",
     maxOutputTokens: 2048,
     safetySettings: [
       {
@@ -94,16 +95,18 @@ export async function call(input: string, sessionId: string): Promise<GeneratedQ
     })
   }).assign({
     _: (input: QuizGenerationChainThroughput) => console.log(input.categories)
-  }).assign({
-    responseId: async (input: QuizGenerationChainThroughput) =>
-      saveQuestion(
-        sessionId,
-        input.topic,
-        input.category,
-        input.generatedQuestion,
-        input.categories
-      )
   }).pick("generatedQuestion");
+  // SAVE TO NEO4J
+  // .assign({
+  //   responseId: async (input: QuizGenerationChainThroughput) =>
+  //     saveQuestion(
+  //       sessionId,
+  //       input.topic,
+  //       input.category,
+  //       input.generatedQuestion,
+  //       input.categories
+  //     )
+  // }).pick("generatedQuestion");
 
   const response = await classifyAndSaveChain.invoke({topic: input});
 
